@@ -1,0 +1,72 @@
+{% extends 'common/body.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block specificStylesheets %}
+{% endblock specificStylesheets %}
+
+{% block body %}
+<h3 onload="draw()"><%app.vendor%> <%app.name%></h3>
+<div id="mynetwork"></div>
+{% endblock %}
+
+{% block specificsJavascripts %}
+    <script type="text/javascript">
+        function draw(){
+            var container = document.getElementById('mynetwork');
+            var data = {
+                nodes: [
+                    {% for application in consumerApplications %}
+                        {id: '{{application}}', label: '{{application}}', level: '4', group: 'application'},
+                    {% endfor %}
+                    {% for queue in queues %}
+                        {id: '{{queue}}', label: '{{queue}}', level: '3', group: 'queue'},
+                    {% endfor %}
+                    {% for exchange in exchanges %}
+                        {id: '{{exchange}}', label: '{{exchange}}', level: '2', group: 'exchange'},
+                    {% endfor %}
+                    {% for application in producerApplications %}
+                        {id: '{{application}}', label: '{{application}}', level: '1', group: 'application'},
+                    {% endfor %}
+                ],
+                edges: [
+                    {% for producer in producers %}
+                        {from: '{{producer.exchange}}', to: '{{producer.queueName}}', label: '{{producer.routingKey}}'},
+                        {from: '{{producer.queueName}}', to: '{{producer.appName}}'},
+                    {% endfor %}
+                ]
+            };
+
+            var options = {
+                edges: {
+                    smooth: {
+                        type: 'cubicBezier',
+                        forceDirection: 'horizontal',
+                        roundness: 0.4
+                    }
+                },
+                layout: {
+                    hierarchical: {
+                        direction: 'LR'
+                    }
+                },
+                groups: {
+                  application: {
+                    shape: 'star',
+                    color: '#FF9900'
+                  },
+                  queue: {
+                    shape: 'box',
+                    color: "#2B7CE9"
+                  },
+                  exchange: {
+                    shape: 'diamond',
+                    color: "#5A1E5C" // purple
+                  },
+                },
+                physics:false
+            };
+            network = new vis.Network(container, data, options);
+        }
+    </script>
+{% endblock specificsJavascripts %}
